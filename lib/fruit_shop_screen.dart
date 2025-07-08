@@ -47,8 +47,8 @@ class _FruitShopScreenState extends State<FruitShopScreen> {
 
     try {
       if (kDebugMode) {
-        print("🚀 Starting PayFast payment...");
-        print("💰 Amount: $_totalAmount");
+        debugPrint("🚀 Starting PayFast payment...");
+        debugPrint("💰 Amount: $_totalAmount");
       }
 
       final result = await Navigator.push<bool>(
@@ -68,7 +68,7 @@ class _FruitShopScreenState extends State<FruitShopScreen> {
       _handlePaymentResult(result);
     } catch (e) {
       if (kDebugMode) {
-        print("💥 Payment initiation error: $e");
+        debugPrint("💥 Payment initiation error: $e");
       }
       _handlePaymentResult(false);
     } finally {

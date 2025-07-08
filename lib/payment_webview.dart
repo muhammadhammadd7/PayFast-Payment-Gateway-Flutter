@@ -1,4 +1,5 @@
-import 'dart:convert';
+// ignore_for_file: use_build_context_synchronously, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'services/payfast_service.dart';
@@ -54,7 +55,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
 
       _postFormToWebView();
     } catch (e) {
-      print("Payment error: $e");
+      debugPrint("Payment error: $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error starting payment: $e")));
