@@ -2,8 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'services/payfast_service.dart';
-import 'utils/html_form_generator.dart';
 import 'payment_webview.dart';
 import 'package:flutter/foundation.dart';
 
@@ -18,14 +16,28 @@ class _FruitShopScreenState extends State<FruitShopScreen> {
   final double _totalAmount = 499.0; // Amount in PKR
   bool _isLoading = false;
 
-  void _handlePaymentFailure() {
-    Fluttertoast.showToast(
-      msg: "Payment Failed! Please try again.",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
-    );
+  void _handlePaymentResult(bool? result) {
+    if (result == true) {
+      // Payment successful
+      Navigator.pushReplacementNamed(context, '/success');
+      Fluttertoast.showToast(
+        msg: "🎉 Payment Successful!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+    } else {
+      // Payment failed or cancelled
+      Navigator.pushReplacementNamed(context, '/failure');
+      Fluttertoast.showToast(
+        msg: "❌ Payment Failed! Please try again.",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
   }
 
   Future<void> _startPayment() async {
@@ -34,45 +46,31 @@ class _FruitShopScreenState extends State<FruitShopScreen> {
     });
 
     try {
-      final orderId = "FRUIT-${DateTime.now().millisecondsSinceEpoch}";
-
       if (kDebugMode) {
         print("🚀 Starting PayFast payment...");
         print("💰 Amount: $_totalAmount");
-        print("🔢 Order ID: $orderId");
       }
 
-      final token = await PayFastService.initiatePayment(
-        amount: _totalAmount,
-        orderId: orderId,
-        customerName: "Customer",
-        customerEmail: "customer@example.com",
-        customerPhone: "03001234567",
-        description: "Fresh Fruits Purchase",
+      final result = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder:
+              (_) => PaymentWebViewScreen(
+                amount: _totalAmount,
+                email: 'customer@example.com',
+                mobile: '03001234567',
+                customerName: 'Customer',
+                description: 'Fresh Fruits Purchase',
+              ),
+        ),
       );
 
-      if (token != null && token.isNotEmpty) {
-        if (kDebugMode) {
-          print("✅ Access token received: ${token.substring(0, 10)}...");
-        }
-
-        final html = generatePaymentForm(token);
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => PaymentWebView(htmlForm: html)),
-        );
-      } else {
-        if (kDebugMode) {
-          print("❌ Access token is null or empty");
-        }
-        _handlePaymentFailure();
-      }
+      _handlePaymentResult(result);
     } catch (e) {
       if (kDebugMode) {
         print("💥 Payment initiation error: $e");
       }
-      _handlePaymentFailure();
+      _handlePaymentResult(false);
     } finally {
       setState(() {
         _isLoading = false;
@@ -142,7 +140,7 @@ class _FruitShopScreenState extends State<FruitShopScreen> {
                               ),
                             )
                             : const Text(
-                              'Proceed to Checkout',
+                              'Pay with PayFast',
                               style: TextStyle(fontSize: 18),
                             ),
                   ),
